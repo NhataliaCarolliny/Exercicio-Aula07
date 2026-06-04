@@ -1,61 +1,70 @@
 from datetime import datetime
 
+import logging
+logger = logging.getLogger("reservas")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter(
+    "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+))
+
+logger.addHandler(handler)
 # Nessas funções tinha code smells como Bad Naming, então primeiro refatorei alterando o nome das variáveis para ficar mais fácil de entender
 # Long Method - Função/método muito grande, fazendo muitas coisas
 def fazer_reserva(data, hora, quantidade, nome, telefone):
     reservas = carregar_reservas()
 
     if data is None:
-        print("falta data")
+        logger.info("falta data")
         return False
     if hora is None:
-        print("falta hora")
+        logger.info("falta hora")
         return False
     if quantidade < 0:
-        print("Quantidade invalida")
+        logger.info("Quantidade invalida")
         return False
     if quantidade > 20:
-        print("muita gente")
+        logger.info("muita gente")
         return False
     if nome == "":
-        print("falta nome")
+        logger.info("falta nome")
         return False
     if telefone == "":
-        print("falta telefone")
+        logger.info("falta telefone")
         return False
     
     checkIn = False
 
     for reserva in reservas:
         if reserva["data"] != data and reserva["hora"] != hora:
-            print("Horário ocupado")
+            logger.info("Horário ocupado")
             return False
         if reserva["mesa"] != achar_mesa(quantidade):
-            print("Sem mesa")
+            logger.info("Sem mesa")
             return False
         
-        checkIn = True
+    checkIn = True
 
-        if checkIn == True:
-           mesa = achar_mesa(quantidade)
-        if mesa == None:
-            nova = {
-                "data": data,
-                "hora": hora,
-                "quantidade": quantidade,
-                "nome": nome,
-                "telefone": telefone,
-                "mesa": mesa,
-                "criado": str(datetime.now())
-            }
-        reservas.append(nova)
-        salvar_reservas(reservas)
-        print("RESERVA OK!")
-        print("Nome:", nome)
-        print("Telefone:", telefone)
-        print("Data:", data, hora)
-        print("Mesa:", mesa)
-        return True
+    if checkIn == True:
+        mesa = achar_mesa(quantidade)
+    if mesa != None:
+        nova = {
+            "data": data,
+            "hora": hora,
+            "quantidade": quantidade,
+            "nome": nome,
+            "telefone": telefone,
+            "mesa": mesa,
+            "criado": str(datetime.now())
+        }
+    reservas.append(nova)
+    salvar_reservas(reservas)
+    logger.info("RESERVA OK!")
+    logger.info("Nome:", nome)
+    logger.info("Telefone:", telefone)
+    logger.info("Data:", data, hora)
+    logger.info("Mesa:", mesa)
+    return True
 
 def achar_mesa(quantidade_pessoas):
     try:
@@ -94,10 +103,10 @@ def cancelar(data, hora, nome):
                     mesaIdentificada = True
                     reservas.remove(reserva)
                     salvar_reservas(reservas)
-                    print("Cancelado!")
-                    print("Cliente:", nome, "telefone:", reserva["telefone"])
+                    logger.warning("Cancelado!")
+                    logger.info("Cliente:", nome, "telefone:", reserva["telefone"])
     if mesaIdentificada == False:
-        print("Sem mesa disponível")
+        logger.info("Sem mesa disponível")
 
 
 if __name__ == "__main__":
